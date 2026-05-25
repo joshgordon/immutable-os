@@ -1,0 +1,25 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "docker:pinDigests",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "dockerfile": {
+    "fileMatch": ["(^|/)Containerfile$", "(^|/)Containerfile\\..*$"]
+  },
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["quay.io/almalinuxorg/almalinux-bootc"],
+      "schedule": ["after 2am and before 6am on weekdays"],
+      "groupName": "AlmaLinux bootc base image"
+    },
+    {
+      "matchUpdateTypes": ["digest"],
+      "automerge": false
+    }
+  ],
+  "timezone": "America/Chicago"
+}

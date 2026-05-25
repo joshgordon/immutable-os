@@ -1,0 +1,12 @@
+FROM quay.io/almalinuxorg/almalinux-bootc:10@sha256:abc123...
+
+RUN dnf install -y \
+        cloud-init cloud-utils-growpart \
+        nginx \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
+RUN systemctl enable cloud-init.service nginx.service \
+                     bootc-fetch-apply-updates.timer
+
+RUN bootc container lint
