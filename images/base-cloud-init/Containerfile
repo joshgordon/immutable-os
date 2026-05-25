@@ -6,7 +6,7 @@ RUN dnf install -y \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
-RUN systemctl enable cloud-init.service nginx.service \
+RUN systemctl enable cloud-init.service \
                      bootc-fetch-apply-updates.timer
 
 RUN echo export EDITOR=vim >> /etc/profile.d/99-editor-vim.sh
