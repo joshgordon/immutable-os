@@ -2,7 +2,7 @@ FROM quay.io/almalinuxorg/almalinux-bootc:10@sha256:3cf98cf959b852dc95e9a427a1e7
 
 RUN dnf install -y \
         cloud-init cloud-utils-growpart \
-        vim
+        vim \
     && dnf clean all \
     && rm -rf /var/cache/dnf
 
