@@ -13,7 +13,7 @@
     {
       "matchDatasources": ["docker"],
       "matchPackageNames": ["quay.io/almalinuxorg/almalinux-bootc"],
-      "schedule": ["after 2am and before 6am on weekdays"],
+      "schedule": ["* 2-5 * * 1-5"],
       "groupName": "AlmaLinux bootc base image"
     },
     {
