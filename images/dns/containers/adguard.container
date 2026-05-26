@@ -1,0 +1,21 @@
+[Unit]
+Description=AdGuard Home DNS/Ad Blocker
+
+[Container]
+Image=docker.io/adguard/adguardhome:latest
+PublishPort=53:53/tcp
+PublishPort=53:53/udp
+PublishPort=80:80/tcp
+PublishPort=443:443/tcp
+PublishPort=853:853/tcp
+PublishPort=3000:3000/tcp
+Volume=/var/lib/adguard/work:/opt/adguardhome/work:Z
+Volume=/var/lib/adguard/conf:/opt/adguardhome/conf:Z
+Volume=/var/lib/adguard/certs:/certs:Z,ro
+AutoUpdate=registry
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target

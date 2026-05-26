@@ -1,0 +1,22 @@
+[Unit]
+Description=OpenBao Agent
+# Hold until an operator writes role-id at bootstrap
+ConditionPathExists=/etc/bao/role-id
+
+[Container]
+Image=docker.io/openbao/openbao:latest
+# Agent reads all .hcl files in agent.d/ lexicographically;
+# derived images drop additional files there (e.g. 20-templates.hcl).
+Exec=bao agent -config=/etc/bao/agent.d/
+Volume=/etc/bao:/etc/bao:Z
+Volume=/run/secrets:/run/secrets:Z
+# OpenBao server address — write VAULT_ADDR=https://... to this file at bootstrap
+# or bake it into a derived image's /etc/bao/server.env
+EnvironmentFile=-/etc/bao/server.env
+AutoUpdate=registry
+
+[Service]
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target default.target

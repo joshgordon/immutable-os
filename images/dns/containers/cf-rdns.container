@@ -1,0 +1,17 @@
+[Unit]
+Description=Cloudflare Reverse DNS
+After=bao-agent.service
+Requires=bao-agent.service
+
+[Container]
+Image=docker.io/joshgordon/cf-rdns:latest
+PublishPort=3535:53/udp
+PublishPort=3535:53/tcp
+EnvironmentFile=/run/secrets/cf-rdns.env
+AutoUpdate=registry
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target

@@ -1,0 +1,17 @@
+[Unit]
+Description=AdGuard Home Sync
+After=bao-agent.service
+# Optional service — only starts if bao-agent rendered the config
+ConditionPathExists=/run/secrets/adguardhome-sync.yaml
+
+[Container]
+Image=ghcr.io/bakito/adguardhome-sync:latest
+PublishPort=8080:8080/tcp
+Volume=/run/secrets/adguardhome-sync.yaml:/opt/adguardhome-sync/adguardhome-sync.yaml:Z,ro
+AutoUpdate=registry
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=multi-user.target default.target

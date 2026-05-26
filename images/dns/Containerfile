@@ -1,0 +1,12 @@
+FROM ghcr.io/joshgordon/immutable-os/bao-agent:latest
+
+# DNS-specific bao templates and agent config drop-in
+COPY images/dns/bao/ /etc/bao/
+
+# AdGuard, cf-rdns, adguardhome-sync Quadlets
+COPY images/dns/containers/ /etc/containers/systemd/
+
+# Persistent data dirs for AdGuard work/conf/certs volumes
+COPY images/dns/tmpfiles.d/ /usr/lib/tmpfiles.d/
+
+RUN bootc container lint

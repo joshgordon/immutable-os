@@ -1,0 +1,34 @@
+{{- with secret "secret/data/dns/adguardhome-sync" -}}
+cron: "*/10 * * * *"
+runOnStart: true
+
+origin:
+  url: http://10.3.12.76
+  username: adguard_sync
+  password: {{ .Data.data.origin_password }}
+
+replica:
+  url: http://10.3.12.217
+  username: adguard_sync
+  password: {{ .Data.data.replica_password }}
+
+api:
+  port: 8080
+  username: adguard_sync
+  password: {{ .Data.data.api_password }}
+
+features:
+  generalSettings: true
+  queryLogConfig: true
+  statsConfig: true
+  clientSettings: true
+  services: true
+  filters: true
+  dhcp:
+    serverConfig: true
+    staticLeases: true
+  dns:
+    serverConfig: true
+    accessLists: true
+    rewrites: true
+{{- end }}
