@@ -5,6 +5,7 @@ ConditionPathExists=/etc/bao/role-id
 
 [Container]
 Image=docker.io/openbao/openbao:latest
+User=root
 Exec=bao agent -config=/etc/bao/agent.d/
 Volume=/etc/bao:/etc/bao:Z
 Volume=/run/secrets:/run/secrets:Z
