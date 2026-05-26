@@ -10,13 +10,16 @@ Image=docker.io/openbao/openbao:latest
 Exec=bao agent -config=/etc/bao/agent.d/
 Volume=/etc/bao:/etc/bao:Z
 Volume=/run/secrets:/run/secrets:Z
-# OpenBao server address — write VAULT_ADDR=https://... to this file at bootstrap
-# or bake it into a derived image's /etc/bao/server.env
-EnvironmentFile=-/etc/bao/server.env
+# Picks up VAULT_ADDR from the service environment (set via [Service] below)
+PassEnv=VAULT_ADDR
 AutoUpdate=registry
 
 [Service]
 Restart=on-failure
+# Write VAULT_ADDR=https://bao.host:8200 to this file at bootstrap (or bake
+# it into a derived image). The leading - makes it optional so the unit
+# still loads if the file doesn't exist yet.
+EnvironmentFile=-/etc/bao/server.env
 
 [Install]
 WantedBy=multi-user.target default.target

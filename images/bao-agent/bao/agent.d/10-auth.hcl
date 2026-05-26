@@ -10,10 +10,11 @@ auto_auth {
     }
   }
 
-  # Token written here; dependent containers mount /run/secrets read-only.
+  # Persistent cache — agent reads this on restart and renews it instead of
+  # re-authenticating. Without this, every reboot consumes a new secret-id.
   sink "file" {
     config = {
-      path = "/run/secrets/bao-token"
+      path = "/etc/bao/token-cache"
       mode = 0400
     }
   }
