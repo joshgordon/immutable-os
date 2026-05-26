@@ -144,6 +144,9 @@ jobs:
             ${{ env.REGISTRY }}/${{ steps.meta.outputs.image_name }}:latest
             ${{ env.REGISTRY }}/${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.date }}
           platforms: linux/amd64
+          # Always pull base images so the freshly-built bao-agent:latest is
+          # used rather than a stale cached version from a previous dns build.
+          pull: true
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
 
