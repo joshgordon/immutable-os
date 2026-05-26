@@ -8,6 +8,7 @@ Image=docker.io/openbao/openbao:latest
 User=root
 Exec=bao agent -config=/etc/bao/agent.d/
 Volume=/etc/bao:/etc/bao:Z
+Volume=/var/lib/bao:/var/lib/bao:Z
 Volume=/run/secrets:/run/secrets:Z
 # Reads VAULT_ADDR from /etc/bao/server.env on the host.
 # Edit that file at bootstrap; the 3-way merge preserves it across upgrades.

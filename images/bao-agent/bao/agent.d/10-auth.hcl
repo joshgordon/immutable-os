@@ -14,7 +14,7 @@ auto_auth {
   # re-authenticating. Without this, every reboot consumes a new secret-id.
   sink "file" {
     config = {
-      path = "/etc/bao/token-cache"
+      path = "/var/lib/bao/token-cache"
       mode = 0400
     }
   }
