@@ -13,6 +13,7 @@ Volume=/run/secrets:/run/secrets:Z
 # Reads VAULT_ADDR from /etc/bao/server.env on the host.
 # Edit that file at bootstrap; the 3-way merge preserves it across upgrades.
 EnvironmentFile=/etc/bao/server.env
+Environment=BAO_CACERT=/etc/bao/ca.crt
 AutoUpdate=registry
 
 [Service]
