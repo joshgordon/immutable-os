@@ -8,11 +8,11 @@ RUN dnf install -y \
 RUN echo export EDITOR=vim >> /etc/profile.d/99-editor-vim.sh
 
 # /run/secrets is tmpfs at runtime; bao-secrets.conf creates it at every boot
-COPY images/bao-agent/tmpfiles.d/ /usr/lib/tmpfiles.d/
+COPY tmpfiles.d/ /usr/lib/tmpfiles.d/
 
 # Quadlet unit and agent config directory (no secrets — those arrive at bootstrap)
-COPY images/bao-agent/containers/ /etc/containers/systemd/
-COPY images/bao-agent/bao/        /etc/bao/
+COPY containers/ /etc/containers/systemd/
+COPY bao/        /etc/bao/
 
 RUN systemctl enable podman-auto-update.timer bootc-fetch-apply-updates.timer
 
