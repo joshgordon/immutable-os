@@ -81,7 +81,7 @@ jobs:
       - name: Build and push (${{ matrix.arch }})
         uses: docker/build-push-action@v7
         with:
-          context: .
+          context: ./images/${{ matrix.image }}
           file: ./images/${{ matrix.image }}/Containerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
@@ -169,7 +169,7 @@ jobs:
       - name: Build and push (${{ matrix.arch }})
         uses: docker/build-push-action@v7
         with:
-          context: .
+          context: ./images/${{ matrix.image }}
           file: ./images/${{ matrix.image }}/Containerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: |
