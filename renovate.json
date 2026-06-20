@@ -7,7 +7,10 @@
     ":semanticCommits"
   ],
   "dockerfile": {
-    "fileMatch": ["(^|/)Containerfile$", "(^|/)Containerfile\\..*$"]
+    "managerFilePatterns": [
+      "/(^|/)Containerfile$/",
+      "/(^|/)Containerfile\\..*$/"
+    ]
   },
   "packageRules": [
     {
