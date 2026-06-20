@@ -21,5 +21,14 @@
       "automerge": false
     }
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)Containerfile$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>.+?)(?: extractVersion=(?<extractVersion>.+?))?(?: versioning=(?<versioning>.+?))?\\s+ARG k8s_version=(?<currentValue>.+?)\\s"
+      ]
+    }
+  ],
   "timezone": "America/Chicago"
 }
