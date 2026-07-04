@@ -20,6 +20,12 @@
       "groupName": "AlmaLinux bootc base image"
     },
     {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/joshgordon/almalinux-rpi5-kernel"],
+      "schedule": ["* 2-5 * * 1-5"],
+      "groupName": "RPi5 kernel image"
+    },
+    {
       "matchUpdateTypes": ["digest"],
       "automerge": false
     }
