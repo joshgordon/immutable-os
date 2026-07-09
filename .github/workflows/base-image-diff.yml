@@ -1,0 +1,69 @@
+name: Base image package diff
+
+# Diffs installed RPM packages between the old and new digest whenever
+# Renovate bumps a digest-pinned FROM line in a Containerfile, and posts
+# the result as a PR comment.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "images/**/Containerfile"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  diff:
+    if: github.actor == 'renovate[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up QEMU (for cross-arch image inspection)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Diff installed RPM packages between base image digests
+        run: |
+          .github/scripts/diff-base-image-packages.sh \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}" \
+            base-image-diff.md
+
+      - name: Comment on PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'base-image-diff.md';
+            if (!fs.existsSync(path) || fs.statSync(path).size === 0) return;
+
+            const marker = '<!-- base-image-diff -->';
+            const body = marker + '\n## Base image package changes\n\n' + fs.readFileSync(path, 'utf8');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
