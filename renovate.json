@@ -27,7 +27,8 @@
     },
     {
       "matchUpdateTypes": ["digest"],
-      "automerge": false
+      "automerge": true,
+      "platformAutomerge": true
     }
   ],
   "customManagers": [
