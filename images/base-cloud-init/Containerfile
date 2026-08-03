@@ -1,4 +1,4 @@
-FROM quay.io/almalinuxorg/almalinux-bootc:10@sha256:585a7eaab4e56a11e58042a835c4d328a72d6248019f01ee7fc3746d66a6d113
+FROM quay.io/almalinuxorg/almalinux-bootc:10@sha256:d57edbed2565714b73e5bdd510b3aeb49aea28bd7c72d282f657cc506adb4df9
 
 RUN dnf install -y \
         cloud-init cloud-utils-growpart \
