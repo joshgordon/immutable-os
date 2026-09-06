@@ -5,7 +5,7 @@ After=bao-agent.service
 ConditionPathExists=/run/secrets/adguardhome-sync.yaml
 
 [Container]
-Image=ghcr.io/bakito/adguardhome-sync:latest
+Image=ghcr.io/bakito/adguardhome-sync:latest@sha256:fb7224aeeab74d68990c3ecf51594a6f92428fcc93c7a162c3bc221e77a49025
 PublishPort=8080:8080/tcp
 Volume=/run/secrets/adguardhome-sync.yaml:/opt/adguardhome-sync/adguardhome-sync.yaml:Z,ro
 AutoUpdate=registry
