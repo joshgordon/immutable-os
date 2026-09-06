@@ -4,7 +4,7 @@ Description=OpenBao Agent
 ConditionPathExists=/etc/bao/role-id
 
 [Container]
-Image=docker.io/openbao/openbao:latest
+Image=docker.io/openbao/openbao:latest@sha256:11fd73a2102cda9c55d5d881a8c3210303146a7ec1e8ac76f526e175c6d24641
 User=root
 Exec=bao agent -config=/etc/bao/agent.d/
 Volume=/etc/bao:/etc/bao:Z
