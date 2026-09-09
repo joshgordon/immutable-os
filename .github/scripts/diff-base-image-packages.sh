@@ -35,10 +35,28 @@ for line in "${pairs[@]:-}"; do
   fi
 done
 
+# Some base images (e.g. the rpi variant) are published as arm64-only
+# manifest lists, with no amd64 entry at all. podman run defaults to the
+# runner's native platform, which fails immediately with "no image found
+# in image index" before QEMU emulation ever comes into play. Try amd64
+# first (native, no emulation needed), and only fall back to arm64 -
+# which the workflow's QEMU setup step lets us actually execute - when
+# the failure is specifically a missing-platform one.
 rpm_list() {
-  local ref="$1"
-  podman run --rm --entrypoint '' "$ref" \
-    rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}.%{ARCH}\n' | sort
+  local ref="$1" platform out
+  for platform in linux/amd64 linux/arm64; do
+    if out=$(podman run --rm --platform "$platform" --entrypoint '' "$ref" \
+        rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}.%{ARCH}\n' 2>&1); then
+      echo "$out" | sort
+      return 0
+    fi
+    if ! grep -q 'no image found in image index' <<<"$out"; then
+      echo "$out" >&2
+      return 1
+    fi
+  done
+  echo "no matching platform (amd64 or arm64) in manifest for $ref" >&2
+  return 1
 }
 
 for image in "${!NEW_DIGEST[@]}"; do
@@ -48,15 +66,26 @@ for image in "${!NEW_DIGEST[@]}"; do
 
   echo "Diffing $image: $old -> $new" >&2
 
-  old_pkgs=$(rpm_list "${image}@${old}")
-  new_pkgs=$(rpm_list "${image}@${new}")
-
   {
     echo "### \`$image\`"
     echo
     echo "\`${old:0:19}\`... → \`${new:0:19}\`..."
     echo
   } >> "$OUT_FILE"
+
+  # Handle failures per-image so one bad pull doesn't abort the whole run
+  # (set -e would otherwise kill the script here and skip every image
+  # that hadn't been processed yet).
+  if ! old_pkgs=$(rpm_list "${image}@${old}"); then
+    echo "_Could not inspect \`$image@$old\`; skipping this image._" >> "$OUT_FILE"
+    echo >> "$OUT_FILE"
+    continue
+  fi
+  if ! new_pkgs=$(rpm_list "${image}@${new}"); then
+    echo "_Could not inspect \`$image@$new\`; skipping this image._" >> "$OUT_FILE"
+    echo >> "$OUT_FILE"
+    continue
+  fi
 
   added=$(comm -13 <(awk '{print $1}' <<<"$old_pkgs") <(awk '{print $1}' <<<"$new_pkgs"))
   removed=$(comm -23 <(awk '{print $1}' <<<"$old_pkgs") <(awk '{print $1}' <<<"$new_pkgs"))
