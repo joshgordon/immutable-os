@@ -43,18 +43,25 @@ done
 # which the workflow's QEMU setup step lets us actually execute - when
 # the failure is specifically a missing-platform one.
 rpm_list() {
-  local ref="$1" platform out
+  local ref="$1" platform out errfile
+  errfile=$(mktemp)
   for platform in linux/amd64 linux/arm64; do
+    # stdout (the rpm list) and stderr (podman's pull progress / errors) must
+    # stay separate - merging them corrupts the package list with progress
+    # noise even on success.
     if out=$(podman run --rm --platform "$platform" --entrypoint '' "$ref" \
-        rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}.%{ARCH}\n' 2>&1); then
+        rpm -qa --qf '%{NAME} %{VERSION}-%{RELEASE}.%{ARCH}\n' 2>"$errfile"); then
+      rm -f "$errfile"
       echo "$out" | sort
       return 0
     fi
-    if ! grep -q 'no image found in image index' <<<"$out"; then
-      echo "$out" >&2
+    if ! grep -q 'no image found in image index' "$errfile"; then
+      cat "$errfile" >&2
+      rm -f "$errfile"
       return 1
     fi
   done
+  rm -f "$errfile"
   echo "no matching platform (amd64 or arm64) in manifest for $ref" >&2
   return 1
 }
