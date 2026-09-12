@@ -1,4 +1,4 @@
-FROM ghcr.io/joshgordon/immutable-os/bao-agent:latest
+FROM ghcr.io/joshgordon/immutable-os/bao-agent:latest@sha256:af3633f48106ac8900fbe5a70230f0bda47e51e2e7106fd1a3e4970b66103836
 
 # DNS-specific bao templates and agent config drop-in
 COPY bao/ /etc/bao/
