@@ -1,4 +1,4 @@
-FROM quay.io/almalinuxorg/almalinux-bootc:10@sha256:91da94ccbd219a99663150a9633e70949826fd6760536cbc16d42ff55d24a9a3
+FROM quay.io/almalinuxorg/almalinux-bootc:10@sha256:eca4b40376dd6d59aa120eaefb20ee1a181d58844c188f1ca30972c9d8a753b7
 
 RUN dnf install -y \
         vim \
