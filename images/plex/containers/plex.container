@@ -17,7 +17,7 @@ Environment=PLEX_GID=998
 Volume=/var/lib/plexmediaserver:/config
 Volume=/var/lib/plex-transcode:/transcode
 # Keep the right-hand path the same as the existing Plex library path
-Volume=/var/mnt/media:/mnt/media:ro
+Volume=/var/mnt/media:/data/media:ro
 AutoUpdate=registry
 
 [Service]
