@@ -16,6 +16,10 @@ RUN set -eux; \
     rpm -qa 'kernel*' 'akmod*' 'xorg-x11-drv-nvidia*' | sort; \
     akmods --force --kernels "$KVER" \
         || { cat /var/cache/akmods/*/*.failed.log 2>/dev/null || true; exit 1; }; \
+    find /usr/lib/modules -mindepth 1 -maxdepth 2 | sort; \
+    for D in /usr/lib/modules/*; do \
+        test -e "$D/vmlinuz" || rm -rf "${D:?}"; \
+    done; \
     test "$(ls /usr/lib/modules | wc -l)" -eq 1; \
     depmod -a "$KVER"; \
     modinfo -k "$KVER" nvidia > /dev/null; \
