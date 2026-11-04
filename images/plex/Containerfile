@@ -1,34 +1,29 @@
 FROM ghcr.io/joshgordon/immutable-os/base-cloud-init:latest
 
-# NVIDIA driver. dnf may pull in a second kernel to match the driver, so keep
-# the kernel that holds the NVIDIA module and remove the other. Fail the build
-# if the result isn't a single bootable kernel with NVENC/NVDEC libraries.
+# NVIDIA 580xx driver from RPM Fusion. This is the last branch that supports
+# Pascal cards like the Quadro P600, and it has to be compiled for the kernel.
 RUN set -eux; \
-    dnf install -y almalinux-release-nvidia-driver; \
-    dnf install -y nvidia-open-kmod nvidia-driver nvidia-driver-cuda; \
-    rpm -qa 'kernel*' | sort; \
-    ls -1 /usr/lib/modules; \
-    KVER="$(find /usr/lib/modules -type f -name 'nvidia.ko*' \
-        | sed 's|^/usr/lib/modules/||; s|/.*||' | sort -uV | tail -n 1)"; \
-    test -n "$KVER"; \
-    dnf install -y "kernel-modules-$KVER" "kernel-modules-extra-$KVER"; \
-    for OLD in $(ls /usr/lib/modules | grep -vx "$KVER"); do \
-        dnf remove -y "kernel*-$OLD"; \
-        rm -rf "/usr/lib/modules/${OLD:?}"; \
-    done; \
+    KVER="$(ls /usr/lib/modules)"; \
+    test "$(echo "$KVER" | wc -l)" -eq 1; \
+    dnf install -y epel-release; \
+    crb enable; \
+    EL="$(rpm -E %rhel)"; \
+    dnf install -y \
+        "https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-$EL.noarch.rpm" \
+        "https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-$EL.noarch.rpm"; \
+    dnf install -y "kernel-devel-$KVER" "kernel-modules-$KVER" "kernel-modules-extra-$KVER"; \
+    dnf install -y akmod-nvidia-580xx xorg-x11-drv-nvidia-580xx-cuda; \
+    rpm -qa 'kernel*' 'akmod*' 'xorg-x11-drv-nvidia*' | sort; \
+    akmods --force --kernels "$KVER" \
+        || { cat /var/cache/akmods/*/*.failed.log 2>/dev/null || true; exit 1; }; \
     test "$(ls /usr/lib/modules | wc -l)" -eq 1; \
-    test -s "/usr/lib/modules/$KVER/vmlinuz"; \
-    test -s "/usr/lib/modules/$KVER/initramfs.img" \
-        || dracut --no-hostonly --add ostree --force \
-            "/usr/lib/modules/$KVER/initramfs.img" "$KVER"; \
-    test -s "/usr/lib/modules/$KVER/initramfs.img"; \
     depmod -a "$KVER"; \
     modinfo -k "$KVER" nvidia > /dev/null; \
     ldconfig; \
     ldconfig -p | grep -q libnvidia-encode; \
     ldconfig -p | grep -q libnvcuvid; \
     dnf clean all; \
-    rm -rf /var/cache/dnf
+    rm -rf /var/cache/dnf /var/cache/akmods
 
 # Keep nouveau from claiming the GPU
 RUN mkdir -p /usr/lib/bootc/kargs.d \
