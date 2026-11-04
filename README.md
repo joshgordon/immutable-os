@@ -15,6 +15,7 @@ See [bootc docs](https://bootc-dev.github.io/bootc/) and the [three-way /etc/ me
 | `base-cloud-init` | almalinux-bootc:10 | Minimal base with cloud-init and growpart |
 | `bao-agent` | almalinux-bootc:10 | OpenBao agent for secrets delivery |
 | `dns` | bao-agent | AdGuard Home + AdGuard Home Sync + cloudflare-rdns via Quadlet |
+| `plex` | base-cloud-init | Plex Media Server via Quadlet with NVIDIA hardware transcoding; OS updates run at 3am Eastern |
 | `almalinux-k8s` | almalinux-bootc:10 / almalinux-bootc-rpi:10 | Kubernetes node (containerd, kubelet, kubeadm, cilium-cli); RPi 5 gets a BCM2712 kernel from [almalinux-rpi5-kernel](https://github.com/joshgordon/almalinux-rpi5-kernel) |
 
 ## Adding a variant
