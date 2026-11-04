@@ -1,0 +1,45 @@
+FROM ghcr.io/joshgordon/immutable-os/base-cloud-init:latest
+
+# NVIDIA driver for the image's kernel. Fail the build if dnf adds a second
+# kernel, the module doesn't match, or the NVENC/NVDEC libraries are missing.
+RUN set -eux; \
+    dnf install -y almalinux-release-nvidia-driver; \
+    KVER="$(ls /usr/lib/modules)"; \
+    dnf install -y "kernel-modules-$KVER" "kernel-modules-extra-$KVER" \
+        nvidia-open-kmod nvidia-driver nvidia-driver-cuda; \
+    test "$(ls /usr/lib/modules | wc -l)" -eq 1; \
+    depmod -a "$KVER"; \
+    modinfo -k "$KVER" nvidia > /dev/null; \
+    ldconfig; \
+    ldconfig -p | grep -q libnvidia-encode; \
+    ldconfig -p | grep -q libnvcuvid; \
+    dnf clean all; \
+    rm -rf /var/cache/dnf
+
+# Keep nouveau from claiming the GPU
+RUN mkdir -p /usr/lib/bootc/kargs.d \
+    && echo 'kargs = ["rd.driver.blacklist=nouveau", "modprobe.blacklist=nouveau"]' \
+        > /usr/lib/bootc/kargs.d/10-nvidia.toml
+
+# NVIDIA Container Toolkit generates the CDI spec Podman uses for GPU access
+RUN set -eux; \
+    curl -fsSL https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo \
+        -o /etc/yum.repos.d/nvidia-container-toolkit.repo; \
+    dnf install -y nvidia-container-toolkit-base; \
+    dnf clean all; \
+    rm -rf /var/cache/dnf
+
+# Plex Quadlet and persistent data dirs
+COPY containers/ /etc/containers/systemd/
+COPY tmpfiles.d/ /usr/lib/tmpfiles.d/
+
+# Check for OS updates at 3am Eastern instead of bootc's default interval
+COPY systemd/ /usr/lib/systemd/system/
+RUN systemd-analyze calendar '*-*-* 03:00:00 America/New_York' > /dev/null
+
+RUN systemctl enable bootc-fetch-apply-updates.timer \
+                     podman-auto-update.timer \
+                     nvidia-cdi-refresh.path \
+                     nvidia-cdi-refresh.service
+
+RUN bootc container lint

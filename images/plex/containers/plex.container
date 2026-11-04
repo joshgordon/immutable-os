@@ -1,0 +1,28 @@
+[Unit]
+Description=Plex Media Server
+Wants=network-online.target nvidia-cdi-refresh.service
+After=network-online.target nvidia-cdi-refresh.service
+RequiresMountsFor=/var/mnt/media
+
+[Container]
+Image=docker.io/plexinc/pms-docker:latest
+ContainerName=plex
+Network=host
+# Matches NVIDIA's Podman CDI example; also avoids relabeling the media tree
+SecurityLabelDisable=true
+PodmanArgs=--device=nvidia.com/gpu=all
+Environment=TZ=America/New_York
+Environment=PLEX_UID=998
+Environment=PLEX_GID=998
+Volume=/var/lib/plexmediaserver:/config
+Volume=/var/lib/plex-transcode:/transcode
+# Keep the right-hand path the same as the existing Plex library path
+Volume=/var/mnt/media:/mnt/media:ro
+AutoUpdate=registry
+
+[Service]
+Restart=always
+TimeoutStartSec=900
+
+[Install]
+WantedBy=multi-user.target default.target
