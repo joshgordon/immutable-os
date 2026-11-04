@@ -1,13 +1,27 @@
 FROM ghcr.io/joshgordon/immutable-os/base-cloud-init:latest
 
-# NVIDIA driver for the image's kernel. Fail the build if dnf adds a second
-# kernel, the module doesn't match, or the NVENC/NVDEC libraries are missing.
+# NVIDIA driver. Move to the newest kernel first so the driver and kernel
+# match, then remove the old kernel. Fail the build if the result isn't a
+# single bootable kernel with the NVENC/NVDEC libraries present.
 RUN set -eux; \
     dnf install -y almalinux-release-nvidia-driver; \
-    KVER="$(ls /usr/lib/modules)"; \
-    dnf install -y "kernel-modules-$KVER" "kernel-modules-extra-$KVER" \
-        nvidia-open-kmod nvidia-driver nvidia-driver-cuda; \
+    grep -q '^layout=ostree' /usr/lib/kernel/install.conf 2>/dev/null \
+        || echo layout=ostree >> /usr/lib/kernel/install.conf; \
+    dnf upgrade -y rpm-ostree rpm-ostree-libs kernel kernel-core \
+        kernel-modules kernel-modules-core; \
+    dnf install -y nvidia-open-kmod nvidia-driver nvidia-driver-cuda; \
+    KVER="$(ls /usr/lib/modules | sort -V | tail -n 1)"; \
+    dnf install -y "kernel-modules-$KVER" "kernel-modules-extra-$KVER"; \
+    for OLD in $(ls /usr/lib/modules | grep -vx "$KVER"); do \
+        dnf remove -y "kernel*-$OLD"; \
+        rm -rf "/usr/lib/modules/$OLD"; \
+    done; \
     test "$(ls /usr/lib/modules | wc -l)" -eq 1; \
+    test -s "/usr/lib/modules/$KVER/vmlinuz"; \
+    test -s "/usr/lib/modules/$KVER/initramfs.img" \
+        || dracut --no-hostonly --add ostree --force \
+            "/usr/lib/modules/$KVER/initramfs.img" "$KVER"; \
+    test -s "/usr/lib/modules/$KVER/initramfs.img"; \
     depmod -a "$KVER"; \
     modinfo -k "$KVER" nvidia > /dev/null; \
     ldconfig; \

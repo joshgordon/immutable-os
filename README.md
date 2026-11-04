@@ -25,7 +25,7 @@ mkdir images/myvariant
 $EDITOR images/myvariant/Containerfile
 ```
 
-CI auto-discovers directories under `images/`. Images whose first `FROM` references `ghcr.io/joshgordon/immutable-os/` are treated as derived and built after their base.
+CI auto-discovers directories under `images/`. Images build for amd64 and arm64 unless `images/<variant>/arches` lists a subset, such as `amd64`. Images whose first `FROM` references `ghcr.io/joshgordon/immutable-os/` are treated as derived and built after their base.
 
 ## Common host commands
 

@@ -24,6 +24,8 @@ jobs:
     outputs:
       bases: ${{ steps.set.outputs.bases }}
       derived: ${{ steps.set.outputs.derived }}
+      bases_matrix: ${{ steps.set.outputs.bases_matrix }}
+      derived_matrix: ${{ steps.set.outputs.derived_matrix }}
       date: ${{ steps.set.outputs.date }}
     steps:
       - uses: actions/checkout@v7
@@ -31,19 +33,30 @@ jobs:
         run: |
           bases=()
           derived=()
+          bases_pairs=()
+          derived_pairs=()
           for dir in images/*/; do
             img=$(basename "$dir")
             from=$(grep -m1 '^FROM ' "$dir/Containerfile" | awk '{print $2}')
+            # Optional images/<variant>/arches limits which architectures build
+            arches=$(cat "${dir}arches" 2>/dev/null || echo "amd64 arm64")
             if [[ "$from" == ghcr.io/${{ github.repository }}/* ]]; then
               derived+=("$img")
+              for arch in $arches; do derived_pairs+=("$img $arch"); done
             else
               bases+=("$img")
+              for arch in $arches; do bases_pairs+=("$img $arch"); done
             fi
           done
+          to_matrix() {
+            printf '%s\n' "$@" | jq -Rc 'split(" ") | {image: .[0], arch: .[1]}' | jq -sc '{include: .}'
+          }
           bases_json=$(printf '%s\n' "${bases[@]}" | jq -R . | jq -sc .)
           derived_json=$(printf '%s\n' "${derived[@]}" | jq -R . | jq -sc .)
           echo "bases=$bases_json"   >> "$GITHUB_OUTPUT"
           echo "derived=$derived_json" >> "$GITHUB_OUTPUT"
+          echo "bases_matrix=$(to_matrix "${bases_pairs[@]}")" >> "$GITHUB_OUTPUT"
+          echo "derived_matrix=$(to_matrix "${derived_pairs[@]}")" >> "$GITHUB_OUTPUT"
           echo "date=$(date -u +%Y%m%d)" >> "$GITHUB_OUTPUT"
           echo "Base images: $bases_json"
           echo "Derived images: $derived_json"
@@ -57,9 +70,7 @@ jobs:
       packages: write
     strategy:
       fail-fast: false
-      matrix:
-        image: ${{ fromJson(needs.discover.outputs.bases) }}
-        arch: [amd64, arm64]
+      matrix: ${{ fromJson(needs.discover.outputs.bases_matrix) }}
     steps:
       - uses: actions/checkout@v7
 
@@ -104,6 +115,8 @@ jobs:
       matrix:
         image: ${{ fromJson(needs.discover.outputs.bases) }}
     steps:
+      - uses: actions/checkout@v7
+
       - name: Log in to ghcr.io
         uses: docker/login-action@v4
         with:
@@ -118,12 +131,16 @@ jobs:
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}
           DATE: ${{ needs.discover.outputs.date }}
+          VARIANT: ${{ matrix.image }}
         run: |
+          sources=()
+          for arch in $(cat "images/${VARIANT}/arches" 2>/dev/null || echo "amd64 arm64"); do
+            sources+=("${IMAGE}:latest-${arch}")
+          done
           docker buildx imagetools create \
             -t "${IMAGE}:latest" \
             -t "${IMAGE}:${DATE}" \
-            "${IMAGE}:latest-amd64" \
-            "${IMAGE}:latest-arm64"
+            "${sources[@]}"
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v4.1.2
@@ -145,9 +162,7 @@ jobs:
       packages: write
     strategy:
       fail-fast: false
-      matrix:
-        image: ${{ fromJson(needs.discover.outputs.derived) }}
-        arch: [amd64, arm64]
+      matrix: ${{ fromJson(needs.discover.outputs.derived_matrix) }}
     steps:
       - uses: actions/checkout@v7
 
@@ -195,6 +210,8 @@ jobs:
       matrix:
         image: ${{ fromJson(needs.discover.outputs.derived) }}
     steps:
+      - uses: actions/checkout@v7
+
       - name: Log in to ghcr.io
         uses: docker/login-action@v4
         with:
@@ -209,12 +226,16 @@ jobs:
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}
           DATE: ${{ needs.discover.outputs.date }}
+          VARIANT: ${{ matrix.image }}
         run: |
+          sources=()
+          for arch in $(cat "images/${VARIANT}/arches" 2>/dev/null || echo "amd64 arm64"); do
+            sources+=("${IMAGE}:latest-${arch}")
+          done
           docker buildx imagetools create \
             -t "${IMAGE}:latest" \
             -t "${IMAGE}:${DATE}" \
-            "${IMAGE}:latest-amd64" \
-            "${IMAGE}:latest-arm64"
+            "${sources[@]}"
 
       - name: Install cosign
         uses: sigstore/cosign-installer@v4.1.2
