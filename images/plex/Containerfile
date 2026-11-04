@@ -14,6 +14,7 @@ RUN set -eux; \
     dnf install -y "kernel-devel-$KVER" "kernel-modules-$KVER" "kernel-modules-extra-$KVER"; \
     dnf install -y akmod-nvidia-580xx xorg-x11-drv-nvidia-580xx-cuda; \
     rpm -qa 'kernel*' 'akmod*' 'xorg-x11-drv-nvidia*' | sort; \
+    echo '%_without_kmod_nvidia_detect 1' > /etc/rpm/macros.nvidia-kmod; \
     akmods --force --kernels "$KVER" \
         || { cat /var/cache/akmods/*/*.failed.log 2>/dev/null || true; exit 1; }; \
     find /usr/lib/modules -mindepth 1 -maxdepth 2 | sort; \
@@ -23,6 +24,8 @@ RUN set -eux; \
     test "$(ls /usr/lib/modules | wc -l)" -eq 1; \
     depmod -a "$KVER"; \
     modinfo -k "$KVER" nvidia > /dev/null; \
+    modinfo -k "$KVER" -F license nvidia; \
+    test "$(modinfo -k "$KVER" -F license nvidia)" = NVIDIA; \
     ldconfig; \
     ldconfig -p | grep -q libnvidia-encode; \
     ldconfig -p | grep -q libnvcuvid; \
