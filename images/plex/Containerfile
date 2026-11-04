@@ -1,4 +1,4 @@
-FROM ghcr.io/joshgordon/immutable-os/base-cloud-init:latest
+FROM FROM quay.io/almalinuxorg/almalinux-bootc:10
 
 # NVIDIA 580xx driver from RPM Fusion. This is the last branch that supports
 # Pascal cards like the Quadro P600, and it has to be compiled for the kernel.
