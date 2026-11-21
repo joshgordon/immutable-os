@@ -2,7 +2,7 @@
 Description=AdGuard Home DNS/Ad Blocker
 
 [Container]
-Image=docker.io/adguard/adguardhome:latest
+Image=docker.io/adguard/adguardhome:latest@sha256:f00a586f0d1caa74f149340bfb225014960310488ffa838406b89256900a96c2
 PublishPort=53:53/tcp
 PublishPort=53:53/udp
 PublishPort=80:80/tcp
