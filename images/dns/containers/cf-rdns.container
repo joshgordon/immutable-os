@@ -4,7 +4,7 @@ After=bao-agent.service
 Requires=bao-agent.service
 
 [Container]
-Image=docker.io/joshgordon/cf-rdns:latest
+Image=docker.io/joshgordon/cf-rdns:latest@sha256:62fe2d7e160a427d7035a6c9e7c62b823aaa03a1d8b558fce6d9b4d01b677c66
 PublishPort=3535:53/udp
 PublishPort=3535:53/tcp
 EnvironmentFile=/run/secrets/cf-rdns.env

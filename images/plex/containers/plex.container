@@ -5,7 +5,7 @@ After=network-online.target nvidia-cdi-refresh.service
 RequiresMountsFor=/var/mnt/media
 
 [Container]
-Image=docker.io/plexinc/pms-docker:latest
+Image=docker.io/plexinc/pms-docker:latest@sha256:6d778d41daae68f89115aa87a44ae14a96b23e71a2093da173b5a9aac4091336
 ContainerName=plex
 Network=host
 # Matches NVIDIA's Podman CDI example; also avoids relabeling the media tree
